@@ -16,6 +16,46 @@ function LandingScreen(props) {
   const scaleAnimValue = React.useRef(new Animated.Value(1)).current;
   const [isNfcSupported, setIsNfcSupported] = React.useState(null);
 
+  // React.useEffect(() => {
+  //   async function initialize() {
+  //     Animated.timing(opacityAnimValue, {
+  //       duration: 1000,
+  //       toValue: 1,
+  //       useNativeDriver: true,
+  //     }).start();
+
+  //     await delay(1000);
+
+  //     Animated.parallel([
+  //       Animated.timing(opacityAnimValue, {
+  //         duration: 350,
+  //         toValue: 0,
+  //         useNativeDriver: true,
+  //       }),
+  //       Animated.timing(scaleAnimValue, {
+  //         duration: 350,
+  //         toValue: 6,
+  //         useNativeDriver: true,
+  //       }),
+  //     ]).start();
+
+  //     await delay(500);
+
+  //     await AppContext.Actions.initStorage();
+
+  //     const success = await NfcProxy.init();
+  //     setIsNfcSupported(success);
+
+  //     if (success) {
+  //       props.navigation.reset({
+  //         index: 0,
+  //         routes: [{name: 'MainTabs'}],
+  //       });
+  //     }
+  //   }
+
+  //   initialize();
+  // }, [props.navigation, opacityAnimValue, scaleAnimValue]);
   React.useEffect(() => {
     async function initialize() {
       Animated.timing(opacityAnimValue, {
@@ -23,9 +63,9 @@ function LandingScreen(props) {
         toValue: 1,
         useNativeDriver: true,
       }).start();
-
+  
       await delay(1000);
-
+  
       Animated.parallel([
         Animated.timing(opacityAnimValue, {
           duration: 350,
@@ -38,25 +78,24 @@ function LandingScreen(props) {
           useNativeDriver: true,
         }),
       ]).start();
-
+  
       await delay(500);
-
-      await AppContext.Actions.initStorage();
-
-      const success = await NfcProxy.init();
+  
+      await AppContext.Actions.initStorage(); // Initialize storage
+  
+      const success = await NfcProxy.init(); // NFC check
       setIsNfcSupported(success);
-
-      if (success) {
-        props.navigation.reset({
-          index: 0,
-          routes: [{name: 'MainTabs'}],
-        });
-      }
+  
+      // Navigate to MainTabs irrespective of NFC support
+      props.navigation.reset({
+        index: 0,
+        routes: [{ name: 'MainTabs' }],
+      });
     }
-
+  
     initialize();
   }, [props.navigation, opacityAnimValue, scaleAnimValue]);
-
+  
   return (
     <View style={styles.container}>
       <Animated.Image
