@@ -167,7 +167,7 @@ function HomeScreen(props) {
             }
           }}
           style={{width}}>
-          SCAN NFC TAG
+          SCAN NFC TAG 
         </Button>
       </View>
     );
@@ -226,10 +226,11 @@ function HomeScreen(props) {
               fontSize: 20,
               fontWeight: 'bold',
               textAlign: 'center',
-              color: '#666',
+              color: '#A9A9A9', // Dark Blue
             }}>
-             NFC Connect
+            NFC Connect
           </Text>
+
 
           <TouchableOpacity
             onPress={() =>
@@ -269,7 +270,7 @@ function HomeScreen(props) {
             </Text> */}
           </TouchableOpacity>
 
-          <TouchableOpacity
+          {/* <TouchableOpacity
             onPress={() => Linking.openURL('mailto:21bcs015@iiitdwd.ac.in')}
             style={{
               paddingHorizontal: 20,
@@ -279,7 +280,7 @@ function HomeScreen(props) {
             }}>
             <Icon name="email" size={18} color={'#888'} />
             <Text style={{marginLeft: 6, color: '#888'}}>Contact Us</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
 
         <IconButton
@@ -290,7 +291,20 @@ function HomeScreen(props) {
           }}
         />
 
-        {enabled ? renderNfcButtons() : renderNfcNotEnabled()}
+<View style={styles.AddRoom}>
+  <IconButton
+    icon={() => <Icon name="plus" size={24} />}
+    onPress={() => {
+      navigation.navigate('ManageRoom');
+    }}
+  />
+  <Text style={styles.addRoomText}>Manage Room Access</Text>
+</View>
+
+         
+
+
+        {renderNfcButtons()}
       </View>
     </>
   );
@@ -301,6 +315,19 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: Platform.OS === 'android' ? 20 : 0,
     right: 20,
+  },
+  AddRoom: {
+    position: 'absolute',
+    top: Platform.OS === 'android' ? 20 : 0,
+    left: 20,
+    flexDirection: 'row',  // Aligns icon and text in a row
+    alignItems: 'center',  // Centers them vertically
+  },
+  addRoomText: {
+    fontSize: 14,
+    marginLeft: -10, // Adds spacing between icon and text
+    color: '#333',
+    fontWeight: 'bold',
   },
 });
 

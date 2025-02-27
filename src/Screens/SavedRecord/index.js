@@ -205,14 +205,17 @@ import * as React from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
 import { useState } from 'react';
 
-// Sample hardcoded users data
 const initialUsers = [
   { id: '1', username: 'admin', email: '21bcs003@iiitdwd.ac.in' },
   { id: '2', username: 'test_user', email: '21bcs026@iiitdwd.ac.in' },
+  // { id: '3', username: 'test_user2', email: '21bcs029@iiitdwd.ac.in' },
 ];
 
-function SavedRecordScreen() {
+function SavedRecordScreen({ route }) {
   const [users, setUsers] = useState(initialUsers);
+
+  // Extract props received from NFC scan
+  const { roomName, userName, entryDate } = route.params || {};
 
   // Function to delete a user by ID, except if the user is the first admin
   const deleteUser = (id) => {
@@ -223,7 +226,19 @@ function SavedRecordScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>User List</Text>
+      <Text style={styles.title}>Visited Rooms</Text>
+
+      {/* Show card if entry data is received */}
+      {roomName && userName && entryDate ? (
+        <View style={styles.card}>
+          <Text style={styles.cardText}> Room: {roomName}</Text>
+          <Text style={styles.cardText}> User: {userName}</Text>
+          <Text style={styles.cardText}> Entry Time: {new Date(entryDate).toLocaleString()}</Text>
+        </View>
+      ) : (
+        <Text style={styles.noEntryText}>No entry done</Text>
+      )}
+
       <FlatList
         data={users}
         keyExtractor={(item) => item.id}
@@ -260,6 +275,29 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 20,
   },
+  card: {
+    backgroundColor: '#f5f5f5',
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 3,
+  },
+  cardText: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginBottom: 5,
+  },
+  noEntryText: {
+    fontSize: 18,
+    fontWeight: '500',
+    color: 'gray',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
   userContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -292,3 +330,4 @@ const styles = StyleSheet.create({
 });
 
 export default SavedRecordScreen;
+
