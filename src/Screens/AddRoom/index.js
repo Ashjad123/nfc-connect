@@ -8,8 +8,8 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Button, Card, Switch } from 'react-native-paper';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Persistent storage
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 function AddRoomScreen() {
@@ -18,20 +18,29 @@ function AddRoomScreen() {
   const [rooms, setRooms] = useState([]); // Stores added rooms
   const [showForm, setShowForm] = useState(false); // Toggle for form visibility
 
-  // Load stored rooms when the component mounts
   useEffect(() => {
-    const loadRooms = async () => {
+    loadRooms();
+  }, []);
+
+  // Load stored rooms from AsyncStorage
+  const loadRooms = async () => {
+    try {
       const storedRooms = await AsyncStorage.getItem('rooms');
       if (storedRooms) {
         setRooms(JSON.parse(storedRooms));
       }
-    };
-    loadRooms();
-  }, []);
+    } catch (error) {
+      console.error('Failed to load rooms:', error);
+    }
+  };
 
-  // Function to store rooms persistently
+  // Save rooms to AsyncStorage
   const saveRooms = async (updatedRooms) => {
-    await AsyncStorage.setItem('rooms', JSON.stringify(updatedRooms));
+    try {
+      await AsyncStorage.setItem('rooms', JSON.stringify(updatedRooms));
+    } catch (error) {
+      console.error('Failed to save rooms:', error);
+    }
   };
 
   // Function to add a room
@@ -50,7 +59,7 @@ function AddRoomScreen() {
 
     const updatedRooms = [...rooms, newRoom];
     setRooms(updatedRooms);
-    saveRooms(updatedRooms); // Store data persistently
+    saveRooms(updatedRooms);
 
     setRoomName('');
     setAccessType('Students');
@@ -58,13 +67,12 @@ function AddRoomScreen() {
   };
 
   // Toggle switch state for room access
-  const toggleRoomStatus = async (roomId) => {
+  const toggleRoomStatus = (roomId) => {
     const updatedRooms = rooms.map((room) =>
       room.id === roomId ? { ...room, enabled: !room.enabled } : room
     );
-
     setRooms(updatedRooms);
-    saveRooms(updatedRooms); // Update AsyncStorage
+    saveRooms(updatedRooms);
   };
 
   return (
@@ -78,36 +86,33 @@ function AddRoomScreen() {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <Card style={styles.roomCard}>
-            <View style={styles.roomDetails}>
+            <View style={styles.roomContent}>
               <View>
                 <Text style={styles.roomName}>{item.name}</Text>
                 <Text style={styles.roomAccess}>Access: {item.access}</Text>
               </View>
+              <Switch
+                value={item.enabled}
+                onValueChange={() => toggleRoomStatus(item.id)}
+                color="#007AFF"
+                style={styles.switchStyle}
+              />
             </View>
-            <Switch
-              value={item.enabled}
-              onValueChange={() => toggleRoomStatus(item.id)}
-              color="#007AFF"
-              style={styles.switchStyle}
-            />
           </Card>
         )}
-        ListEmptyComponent={
-          <Text style={styles.noRoomsText}>No rooms added yet.</Text>
-        }
+        ListEmptyComponent={<Text style={styles.noRoomsText}>No rooms added yet.</Text>}
       />
 
       {/* Floating Add Button */}
       <TouchableOpacity
         style={styles.addButton}
         onPress={() => setShowForm(!showForm)}>
-        <Icon name={showForm ? 'close' : 'plus'} size={28} color="white" />
+        <Icon name={showForm ? 'close' : 'plus'} size={24} color="white" />
       </TouchableOpacity>
 
       {/* Add Room Form (Visible only when showForm is true) */}
       {showForm && (
         <View style={styles.addRoomForm}>
-          <Text style={styles.formTitle}>Add New Room</Text>
           <TextInput
             placeholder="Enter Room Name"
             value={roomName}
@@ -135,10 +140,7 @@ function AddRoomScreen() {
             ))}
           </View>
 
-          <Button
-            mode="contained"
-            onPress={handleAddRoom}
-            style={styles.submitButton}>
+          <Button mode="contained" onPress={handleAddRoom} style={styles.submitButton}>
             Add Room
           </Button>
         </View>
@@ -147,7 +149,7 @@ function AddRoomScreen() {
   );
 }
 
-// Styles (Light Mode, Smooth UI)
+// Styles (Light Mode, Clean & Modern)
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -167,18 +169,16 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   roomCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     backgroundColor: '#f9f9f9',
-    padding: 15,
-    borderRadius: 12,
+    borderRadius: 10,
     marginBottom: 10,
-    elevation: 3, // Subtle shadow effect
+    elevation: 3, // For shadow effect
+    padding: 15,
   },
-  roomDetails: {
+  roomContent: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between', // Align items properly
   },
   roomName: {
     fontSize: 18,
@@ -187,11 +187,10 @@ const styles = StyleSheet.create({
   },
   roomAccess: {
     fontSize: 14,
-    color: '#666',
-    marginTop: 3,
+    color: '#555',
   },
   switchStyle: {
-    marginRight: 10, // Ensure proper right alignment
+    transform: [{ scaleX: 1.2 }, { scaleY: 1.2 }], // Slightly bigger toggle
   },
   addButton: {
     position: 'absolute',
@@ -203,34 +202,28 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 4,
+    elevation: 5,
   },
   addRoomForm: {
     position: 'absolute',
-    bottom: 80,
+    bottom: 100,
     left: 20,
     right: 20,
     backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 12,
+    padding: 16,
+    borderRadius: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.2,
     shadowRadius: 5,
-    elevation: 6,
-  },
-  formTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    color: '#333',
+    elevation: 5,
   },
   input: {
-    borderBottomWidth: 1.5,
+    borderBottomWidth: 1,
     borderBottomColor: '#ccc',
     fontSize: 16,
-    marginBottom: 15,
     paddingVertical: 8,
+    marginBottom: 10,
   },
   accessTypeContainer: {
     flexDirection: 'row',
@@ -238,10 +231,10 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   accessButton: {
-    paddingVertical: 10,
+    paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 5,
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderColor: '#007AFF',
   },
   accessButtonSelected: {
@@ -250,7 +243,6 @@ const styles = StyleSheet.create({
   accessButtonText: {
     fontSize: 14,
     color: '#007AFF',
-    fontWeight: '600',
   },
   accessButtonTextSelected: {
     color: 'white',
@@ -258,8 +250,6 @@ const styles = StyleSheet.create({
   submitButton: {
     marginTop: 10,
     backgroundColor: '#007AFF',
-    borderRadius: 8,
-    paddingVertical: 10,
   },
 });
 
