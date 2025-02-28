@@ -13,13 +13,13 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import NfcProxy from '../../NfcProxy';
-import NfcManager, {NfcEvents, NfcTech} from 'react-native-nfc-manager';
-import {Button, IconButton} from 'react-native-paper';
+import NfcManager, { NfcEvents, NfcTech } from 'react-native-nfc-manager';
+import { Button, IconButton } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import qs from 'query-string';
 
 function HomeScreen(props) {
-  const {navigation} = props;
+  const { navigation } = props;
   const [enabled, setEnabled] = React.useState(null);
   const padding = 40;
   const width = Dimensions.get('window').width - 2 * padding;
@@ -32,15 +32,15 @@ function HomeScreen(props) {
         function onBackgroundTag(bgTag) {
           navigation.navigate('Main', {
             screen: 'TagDetail',
-            params: {tag: bgTag},
+            params: { tag: bgTag },
           });
         }
 
         function onDeepLink(url, launch) {
           try {
             const customScheme = [
-              'com.washow.nfcopenrewriter://', // android
-              'com.revteltech.nfcopenrewriter://', // ios
+              'com.washow.nfcopenrewriter://', // Android
+              'com.revteltech.nfcopenrewriter://', // iOS
             ].find((scheme) => {
               return scheme === url.slice(0, scheme.length);
             });
@@ -50,8 +50,6 @@ function HomeScreen(props) {
             }
 
             url = url.slice(customScheme.length);
-
-            // issue #23: we might have '?' in our payload, so we cannot simply "split" it
             let action = url;
             let query = '';
             let splitIdx = url.indexOf('?');
@@ -67,28 +65,22 @@ function HomeScreen(props) {
               if (sharedRecord.payload?.tech === NfcTech.Ndef) {
                 navigation.navigate('Main', {
                   screen: 'NdefWrite',
-                  params: {savedRecord: sharedRecord},
+                  params: { savedRecord: sharedRecord },
                 });
               } else if (sharedRecord.payload?.tech === NfcTech.NfcA) {
                 navigation.navigate('Main', {
                   screen: 'CustomTransceive',
-                  params: {
-                    savedRecord: sharedRecord,
-                  },
+                  params: { savedRecord: sharedRecord },
                 });
               } else if (sharedRecord.payload?.tech === NfcTech.NfcV) {
                 navigation.navigate('Main', {
                   screen: 'CustomTransceive',
-                  params: {
-                    savedRecord: sharedRecord,
-                  },
+                  params: { savedRecord: sharedRecord },
                 });
               } else if (sharedRecord.payload?.tech === NfcTech.IsoDep) {
                 navigation.navigate('Main', {
                   screen: 'CustomTransceive',
-                  params: {
-                    savedRecord: sharedRecord,
-                  },
+                  params: { savedRecord: sharedRecord },
                 });
               } else {
                 console.warn('unrecognized share payload tech');
@@ -99,7 +91,7 @@ function HomeScreen(props) {
           }
         }
 
-        // get the initial launching tag
+        // Get the initial launching tag
         const bgTag = await NfcManager.getBackgroundTag();
         if (bgTag) {
           onBackgroundTag(bgTag);
@@ -111,25 +103,22 @@ function HomeScreen(props) {
           }
         }
 
-        // listen to other background tags after the app launched
+        // Listen to other background tags after the app launched
         NfcManager.setEventListener(
           NfcEvents.DiscoverBackgroundTag,
-          onBackgroundTag,
+          onBackgroundTag
         );
 
-        // listen to the NFC on/off state on Android device
+        // Listen to the NFC on/off state on Android
         if (Platform.OS === 'android') {
-          NfcManager.setEventListener(
-            NfcEvents.StateChanged,
-            ({state} = {}) => {
-              NfcManager.cancelTechnologyRequest().catch(() => 0);
-              if (state === 'off') {
-                setEnabled(false);
-              } else if (state === 'on') {
-                setEnabled(true);
-              }
-            },
-          );
+          NfcManager.setEventListener(NfcEvents.StateChanged, ({ state } = {}) => {
+            NfcManager.cancelTechnologyRequest().catch(() => 0);
+            if (state === 'off') {
+              setEnabled(false);
+            } else if (state === 'on') {
+              setEnabled(true);
+            }
+          });
         }
 
         Linking.addEventListener('url', (event) => {
@@ -139,7 +128,7 @@ function HomeScreen(props) {
         });
       } catch (ex) {
         console.warn(ex);
-        Alert.alert('ERROR', 'fail to init NFC', [{text: 'OK'}]);
+        Alert.alert('ERROR', 'Fail to initialize NFC', [{ text: 'OK' }]);
       }
     }
 
@@ -163,11 +152,11 @@ function HomeScreen(props) {
           onPress={async () => {
             const tag = await NfcProxy.readTag();
             if (tag) {
-              navigation.navigate('Main', {screen: 'TagDetail', params: {tag}});
+              navigation.navigate('Main', { screen: 'TagDetail', params: { tag } });
             }
           }}
-          style={{width}}>
-          SCAN NFC TAG 
+          style={{ width }}>
+          SCAN NFC TAG
         </Button>
       </View>
     );
@@ -181,15 +170,14 @@ function HomeScreen(props) {
           alignSelf: 'center',
           width,
         }}>
-        <Text style={{textAlign: 'center', marginBottom: 10}}>
-          Your NFC is not enabled. Please first enable it and hit CHECK AGAIN
-          button
+        <Text style={{ textAlign: 'center', marginBottom: 10 }}>
+          Your NFC is not enabled. Please first enable it and hit CHECK AGAIN button.
         </Text>
 
         <Button
           mode="contained"
           onPress={() => NfcProxy.goToNfcSetting()}
-          style={{marginBottom: 10}}>
+          style={{ marginBottom: 10 }}>
           GO TO NFC SETTINGS
         </Button>
 
@@ -208,7 +196,7 @@ function HomeScreen(props) {
     <>
       <StatusBar barStyle="dark-content" />
       <SafeAreaView />
-      <View style={{flex: 1, padding}}>
+      <View style={{ flex: 1, padding }}>
         <View
           style={{
             flex: 1,
@@ -217,7 +205,7 @@ function HomeScreen(props) {
           }}>
           <Image
             source={require('../../../images/nfc-logo.jpeg')}
-            style={{width: 250, height: 250}}
+            style={{ width: 250, height: 250 }}
             resizeMode="contain"
           />
           <Text
@@ -226,63 +214,13 @@ function HomeScreen(props) {
               fontSize: 20,
               fontWeight: 'bold',
               textAlign: 'center',
-              color: '#A9A9A9', // Dark Blue
+              color: '#A9A9A9',
             }}>
             NFC Connect
           </Text>
-
-
-          <TouchableOpacity
-            onPress={() =>
-              Linking.openURL(
-                'https://github.com/revtel/react-native-nfc-rewriter',
-              )
-            }
-            style={{
-              paddingHorizontal: 20,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: 10,
-            }}>
-            {/* <Icon name="github" size={18} color={'#888'} /> */}
-            {/* <Text style={{marginLeft: 6, color: '#888'}}>
-              Github Repo (App)
-            </Text> */}
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() =>
-              Linking.openURL(
-                'https://github.com/revtel/react-native-nfc-manager',
-              )
-            }
-            style={{
-              paddingHorizontal: 20,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: 10,
-            }}>
-            {/* <Icon name="github" size={18} color={'#888'} />
-            <Text style={{marginLeft: 6, color: '#888'}}>
-              Github Repo (Library)
-            </Text> */}
-          </TouchableOpacity>
-
-          {/* <TouchableOpacity
-            onPress={() => Linking.openURL('mailto:21bcs015@iiitdwd.ac.in')}
-            style={{
-              paddingHorizontal: 20,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-            <Icon name="email" size={18} color={'#888'} />
-            <Text style={{marginLeft: 6, color: '#888'}}>Contact Us</Text>
-          </TouchableOpacity> */}
         </View>
 
+        {/* Settings Button */}
         <IconButton
           icon={() => <Icon name="cog" size={32} />}
           style={styles.settingIcon}
@@ -291,18 +229,16 @@ function HomeScreen(props) {
           }}
         />
 
-<View style={styles.AddRoom}>
-  <IconButton
-    icon={() => <Icon name="plus" size={24} />}
-    onPress={() => {
-      navigation.navigate('ManageRoom');
-    }}
-  />
-  <Text style={styles.addRoomText}>Manage Room Access</Text>
-</View>
-
-         
-
+        {/* Manage Room Access Button (FIXED) */}
+        <View style={styles.manageRoomContainer}>
+          <IconButton
+            icon={() => <Icon name="plus" size={24} />}
+            onPress={() => {
+              navigation.navigate('Main', { screen: 'AddRoom' });
+            }}
+          />
+          <Text style={styles.manageRoomText}>Manage Room Access</Text>
+        </View>
 
         {renderNfcButtons()}
       </View>
@@ -316,16 +252,16 @@ const styles = StyleSheet.create({
     top: Platform.OS === 'android' ? 20 : 0,
     right: 20,
   },
-  AddRoom: {
+  manageRoomContainer: {
     position: 'absolute',
     top: Platform.OS === 'android' ? 20 : 0,
     left: 20,
-    flexDirection: 'row',  // Aligns icon and text in a row
-    alignItems: 'center',  // Centers them vertically
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  addRoomText: {
+  manageRoomText: {
     fontSize: 14,
-    marginLeft: -10, // Adds spacing between icon and text
+    marginLeft: -10,
     color: '#333',
     fontWeight: 'bold',
   },
