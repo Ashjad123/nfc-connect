@@ -205,64 +205,35 @@ import * as React from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
 import { useState } from 'react';
 
-const initialUsers = [
-  { id: '1', username: 'admin', email: '21bcs003@iiitdwd.ac.in' },
-  { id: '2', username: 'test_user', email: '21bcs026@iiitdwd.ac.in' },
-  // { id: '3', username: 'test_user2', email: '21bcs029@iiitdwd.ac.in' },
-];
+
 
 function SavedRecordScreen({ route }) {
-  const [users, setUsers] = useState(initialUsers);
+  const entryData = route?.params?.entryData || {};
+  // const { roomName, userName, entryDate } = entryData;
+  const { roomNo, user, entryDate, entryTime } = entryData;
 
-  // Extract props received from NFC scan
-  const { roomName, userName, entryDate } = route.params || {};
-
-  // Function to delete a user by ID, except if the user is the first admin
-  const deleteUser = (id) => {
-    setUsers((prevUsers) => 
-      prevUsers.filter((user) => user.id !== id || user.username === 'admin')
-    );
-  };
+  console.log("Received entryData in SavedRecordScreen:", entryData);
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Visited Rooms</Text>
 
       {/* Show card if entry data is received */}
-      {roomName && userName && entryDate ? (
-        <View style={styles.card}>
-          <Text style={styles.cardText}> Room: {roomName}</Text>
-          <Text style={styles.cardText}> User: {userName}</Text>
-          <Text style={styles.cardText}> Entry Time: {new Date(entryDate).toLocaleString()}</Text>
-        </View>
-      ) : (
-        <Text style={styles.noEntryText}>No entry done</Text>
-      )}
+      {roomNo && user && entryDate && entryTime ? (
+  <View style={styles.card}>
+    <Text style={styles.cardText}> Room: {roomNo}</Text>
+    <Text style={styles.cardText}> User: {user}</Text>
+    <Text style={styles.cardText}> Entry Date: {entryDate}</Text>
+    <Text style={styles.cardText}> Entry Time: {entryTime}</Text>
+  </View>
+) : (
+  <Text style={styles.noEntryText}>No entry done</Text>
+)}
 
-      <FlatList
-        data={users}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.userContainer}>
-            <View>
-              <Text style={styles.username}>{item.username}</Text>
-              <Text style={styles.email}>{item.email}</Text>
-            </View>
-            <TouchableOpacity
-              style={styles.deleteButton}
-              onPress={() => item.username !== 'admin' && deleteUser(item.id)}
-              disabled={item.username === 'admin'}
-            >
-              <Text style={[styles.deleteButtonText, item.username === 'admin' && styles.disabledButtonText]}>
-                Delete
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      />
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {

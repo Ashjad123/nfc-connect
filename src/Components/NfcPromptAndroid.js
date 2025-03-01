@@ -3,13 +3,20 @@ import {Image, Text, View, Animated, StyleSheet, Modal} from 'react-native';
 import {Button} from 'react-native-paper';
 import NfcManager from 'react-native-nfc-manager';
 import {useOutlet} from 'reconnect.js';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import ReactNativeBiometrics from 'react-native-biometrics';
+import { Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+
+
 
 function NfcPromptAndroid(props) {
   const [visible, setVisible] = React.useState(false);
   const animValue = React.useRef(new Animated.Value(0)).current;
   const [_data, _setData] = useOutlet('androidPrompt');
   const {visible: _visible, message = ''} = _data || {};
+
+  const navigation = useNavigation();
+
 
   React.useEffect(() => {
     if (_visible) {
@@ -37,12 +44,49 @@ function NfcPromptAndroid(props) {
   //   _setData({visible: false, message});
   // }
 
-  function ProceedToMFA() {
-    setTimeout(() => {
-      NfcManager.cancelTechnologyRequest().catch(() => 0);
-    }, 200);
-    _setData({visible: false, message});
+  // const rnBiometrics = new ReactNativeBiometrics();
+  const rnBiometrics = new ReactNativeBiometrics({
+    allowDeviceCredentials: true, // Optional: Allows using device credentials as fallback
+  });
+  
+
+  async function ProceedToMFA() {
+    try {
+      setTimeout(() => {
+        NfcManager.cancelTechnologyRequest().catch(() => 0);
+      }, 200);
+      _setData({ visible: false, message });
+  
+      // Check if Biometrics is available
+      const { available, biometryType } = await rnBiometrics.isSensorAvailable();
+  
+      if (!available) {
+        Alert.alert('Error', 'Biometric authentication is not available on this device.');
+        return;
+      }
+  
+      const promptMessage = biometryType === 'FaceID' ? 'Authenticate using Face ID' : 'Authenticate using Fingerprint';
+  
+      // Perform biometric authentication
+      const { success } = await rnBiometrics.simplePrompt({ promptMessage });
+  
+      if (success) {
+        Alert.alert('Success', 'User authenticated successfully.');
+        console.log("Navigating to MyRecordsTab with entryData:", entryData);
+        navigation.navigate('MyRecordsTab', { entryData });
+        
+
+      } else {
+        Alert.alert('Authentication Failed', 'Biometric authentication was canceled or failed.');
+      }
+    } catch (error) {
+      console.error('Biometric auth error:', error);
+      Alert.alert('Error', 'Biometric authentication failed: ' + error.message);
+    }
   }
+  
+
+  
 
   const bgAnimStyle = {
     backgroundColor: 'rgba(0,0,0,0.3)',
@@ -61,42 +105,48 @@ function NfcPromptAndroid(props) {
   };
 
   const currentDate = new Date().toLocaleDateString();
-const currentTime = new Date().toLocaleTimeString();
+// const currentTime = new Date().toLocaleTimeString();
+const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+console.log(currentTime);
 
-  return (
-    <Modal transparent={true} visible={visible}>
-      <View style={[styles.wrapper]}>
-        <View style={{flex: 1}} />
+const entryData = {
+  roomNo: "C102",
+  user: "Adi Jain",
+  entryDate: currentDate,
+  entryTime: currentTime,
+};
+ 
 
-        <Animated.View style={[styles.prompt, promptAnimStyle]}>
-          <View
-            style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-            <Image
-              source={require('../../images/nfc-512.png')}
-              style={{width: 120, height: 120, padding: 20}}
-              resizeMode="contain"
-            />
+return (
+  <Modal transparent={true} visible={visible}>
+    <View style={[styles.wrapper]}>
+      <View style={{ flex: 1 }} />
 
-            {/* <Text>{message}</Text>/ */}
-            <Text>Tag Scanned</Text>
-            <Text>Room No: C102</Text>
-            <Text>User: Adi Jain</Text>
-            <Text>Entry Date: {currentDate}</Text>
-            <Text>Entry Time: {currentTime}</Text>
+      <Animated.View style={[styles.prompt, promptAnimStyle]}>
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+          <Image
+            source={require("../../images/nfc-512.png")}
+            style={{ width: 120, height: 120, padding: 20 }}
+            resizeMode="contain"
+          />
 
+          <Text>Tag Scanned</Text>
+          <Text>Room No: {entryData.roomNo}</Text>
+          <Text>User: {entryData.user}</Text>
+          <Text>Entry Date: {entryData.entryDate}</Text>
+          <Text>Entry Time: {entryData.entryTime}</Text>
+        </View>
 
-
-          </View>
-
-          <Button mode="contained" onPress={ProceedToMFA}>
+        <Button mode="contained" onPress={ProceedToMFA}>
           Tag Scanned Proceed to MFA
-          </Button>
-        </Animated.View>
+        </Button>
+      </Animated.View>
 
-        <Animated.View style={[styles.promptBg, bgAnimStyle]} />
-      </View>
-    </Modal>
-  );
+      <Animated.View style={[styles.promptBg, bgAnimStyle]} />
+    </View>
+  </Modal>
+);
+
 }
 
 const styles = StyleSheet.create({
