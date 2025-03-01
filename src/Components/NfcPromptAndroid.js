@@ -3,6 +3,7 @@ import {Image, Text, View, Animated, StyleSheet, Modal} from 'react-native';
 import {Button} from 'react-native-paper';
 import NfcManager from 'react-native-nfc-manager';
 import {useOutlet} from 'reconnect.js';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 function NfcPromptAndroid(props) {
   const [visible, setVisible] = React.useState(false);
@@ -29,7 +30,14 @@ function NfcPromptAndroid(props) {
     }
   }, [_visible, animValue]);
 
-  function cancelNfcScan() {
+  // function ProceedToMFA() {
+  //   setTimeout(() => {
+  //     NfcManager.cancelTechnologyRequest().catch(() => 0);
+  //   }, 200);
+  //   _setData({visible: false, message});
+  // }
+
+  function ProceedToMFA() {
     setTimeout(() => {
       NfcManager.cancelTechnologyRequest().catch(() => 0);
     }, 200);
@@ -52,6 +60,9 @@ function NfcPromptAndroid(props) {
     ],
   };
 
+  const currentDate = new Date().toLocaleDateString();
+const currentTime = new Date().toLocaleTimeString();
+
   return (
     <Modal transparent={true} visible={visible}>
       <View style={[styles.wrapper]}>
@@ -66,11 +77,19 @@ function NfcPromptAndroid(props) {
               resizeMode="contain"
             />
 
-            <Text>{message}</Text>
+            {/* <Text>{message}</Text>/ */}
+            <Text>Tag Scanned</Text>
+            <Text>Room No: C102</Text>
+            <Text>User: Adi Jain</Text>
+            <Text>Entry Date: {currentDate}</Text>
+            <Text>Entry Time: {currentTime}</Text>
+
+
+
           </View>
 
-          <Button mode="contained" onPress={cancelNfcScan}>
-            CANCEL
+          <Button mode="contained" onPress={ProceedToMFA}>
+          Tag Scanned Proceed to MFA
           </Button>
         </Animated.View>
 
